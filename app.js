@@ -1,49 +1,21 @@
-import express from 'express';
-import config from './enviorments';
-import log from './src/utils/logger';
-import connect from './src/config/connect';
-import routes from "./src/routes";
-import morgan from 'morgan';
-import cookieParser from 'cookie-parser'
-import http from 'http'; // Import the http module
-
-
-
-
-const { PORT } = config;
+import express from "express";
+import mongoose from "mongoose";
+import postRouter from "./routes/Posts-route.js";
+import storyRoutes from "./routes/Story-route.js";
 
 const app = express();
-  
-app.use(function(req, res, next) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  next()
-});
-app.use(express.json({
-   parameterLimit: 100000,
-   limit: '50mb',
-   extended: true
- }));
- app.use(express.urlencoded({
-   parameterLimit: 100000,
-   limit: '50mb',
-   extended: true
- }));
- app.use(cookieParser());
-app.use(morgan('dev'));
- 
-app.use((req, res, next) => {
-  res.setTimeout(120000, () => {
-    res.status(500).json({ error: 'Response timeout exceeded' });
-  });
-  next();
-});
 
-const server = http.createServer(app); // Create an HTTP server
+app.use(express.json());
+app.use("/api", postRouter);
+app.use('/api', storyRoutes);
 
-server.listen(8000 , () => {
-   log.info(`Server is running on port ${PORT}`);
-   connect();
-   routes(app);
-})
+
+// Connect to MongoDB and start the server
+mongoose.connect("mongodb+srv://sjawad123:abcd1234@cluster0.rwiy7ix.mongodb.net/")
+    .then(() => {
+        console.log("Connected to MongoDB");
+        app.listen(5000, () => {
+            console.log("Server is running on port 5000");
+        });
+    })
+    .catch((err) => console.log(err));
